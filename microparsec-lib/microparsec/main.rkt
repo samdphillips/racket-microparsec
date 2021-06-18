@@ -141,6 +141,7 @@ Message tok = Message Pos tok (List String)
 
 (define (format-expected expected-list)
   (match expected-list
+   [(list)   "<empty>"]
    [(list a) (~a a)]
    [(list a b) (~a a " or " b)]
    [(list a ... b) (~a (string-join (map ~a a) ", ") " or " b)]))
