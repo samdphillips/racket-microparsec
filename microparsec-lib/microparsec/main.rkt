@@ -149,7 +149,7 @@ Message tok = Message Pos tok (List String)
 (define (default-err-handler e)
   (match-define (err (message srcloc tok expected)) e)
   (raise-read-error
-    (~a "got " tok "expected "
+    (~a "got " tok " expected "
         (format-expected expected))
     (source-location-source srcloc)
     (source-location-line srcloc)
