@@ -1,0 +1,25 @@
+on: [push, pull_request]
+name: CI
+jobs:
+  build:
+    name: "Build on Racket '${{ matrix.racket-version }}' (${{ matrix.racket-variant }})"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        racket-version: ["stable", "current"]
+        racket-variant: ["BC", "CS"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Bogdanp/setup-racket@v1.5
+        with:
+          architecture: x64
+          distribution: full
+          variant: ${{ matrix.racket-variant }}
+          version: ${{ matrix.racket-version }}
+      - name: Installing microparsec-lib and its dependencies
+        run: raco pkg install --no-docs --auto --link microparsec-lib
+      - name: Compiling microparsec-lib and docs
+        run: raco setup --check-pkg-deps --unused-pkg-deps --pkgs microparsec-lib
+      - name: Testing microparsec-lib
+        run: raco test -xt -p microparsec-lib
+

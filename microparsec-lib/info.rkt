@@ -1,10 +1,11 @@
 #lang info
 
-(define collection 'multi)
-
 (define name "microparsec-lib")
+(define collection "microparsec")
 (define version "0.1")
 
 (define deps
-  '("base"
-    "rackunit-lib"))
+  '("base"))
+(define build-deps
+  '("base" "rackunit-lib"))
+
