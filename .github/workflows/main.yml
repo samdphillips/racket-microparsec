@@ -1,4 +1,8 @@
-on: [push, pull_request]
+on: 
+  push:
+  pull_request:
+  schedule:
+  - cron: "25 16 * * FRI"
 name: CI
 jobs:
   build:
@@ -6,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        racket-version: ["stable", "current"]
+        racket-version: ["8.1", "8.2", "pre-release", "stable", "current"]
         racket-variant: ["BC", "CS"]
     steps:
       - uses: actions/checkout@v2
-      - uses: Bogdanp/setup-racket@v1.5
+      - uses: Bogdanp/setup-racket@v1.7
         with:
           architecture: x64
           distribution: full
@@ -22,4 +26,3 @@ jobs:
         run: raco setup --check-pkg-deps --unused-pkg-deps --pkgs microparsec-lib
       - name: Testing microparsec-lib
         run: raco test -xt -p microparsec-lib
-
