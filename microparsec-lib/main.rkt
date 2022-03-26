@@ -139,6 +139,9 @@ Message tok = Message Pos tok (List String)
         [vs <- (or/p (many1/p p) (return/p null))]
         (return/p (cons v vs))))
 
+(define (many/p p)
+  (or/p (many1/p p) (return/p null)))
+
 (define (format-expected expected-list)
   (match expected-list
    [(list)   "<empty>"]
