@@ -7,7 +7,6 @@
          racket/generic
          racket/match
          racket/stream
-         racket/string
          (rename-in racket/stream
                     [stream-cons -stream-cons]
                     [empty-stream -empty-stream])
@@ -89,17 +88,22 @@ Message tok = Message Pos tok (List String)
   [(_ expr) #'expr])
 
 (define (satisfy/p pred?)
+  (define label
+    (let ([name (object-name pred?)])
+      (if name
+          (list name)
+          (list 'satisfy/p))))
   (lambda (a-stream)
     (match a-stream
      [(stream-cons (? pred? tok) rest)
       (consumed
-        (ok tok rest (message (token-srcloc tok) "" null)))]
+        (ok tok rest (message (token-srcloc tok) "" label)))]
      [(stream-cons tok _)
       (empty
-        (err (message (token-srcloc tok) tok null)))]
+        (err (message (token-srcloc tok) tok label)))]
      [(empty-stream)
       (empty
-        (err (message #f empty-stream null)))])))
+        (err (message #f empty-stream label)))])))
 
 (define (or2/p a/p b/p)
   (lambda (a-stream)
@@ -145,27 +149,29 @@ Message tok = Message Pos tok (List String)
 (define (format-expected expected-list)
   (match expected-list
    [(list)   "<empty>"]
-   [(list a) (~a a)]
-   [(list a b) (~a a " or " b)]
-   [(list a ... b) (~a (string-join (map ~a a) ", ") " or " b)]))
+   [(list a) (~s a)]
+   [(list a b) (~a (~s a) " or " (~s b))]
+   [(list a ... b) (~a (apply ~s a #:separator ", ") " or " b)]))
 
-(define (default-err-handler e)
+(define (default-parse-error-handler who e)
   (match-define (err (message srcloc tok expected)) e)
   (raise-read-error
-    (~a "got " tok " expected "
-        (format-expected expected))
-    (source-location-source srcloc)
-    (source-location-line srcloc)
-    (source-location-column srcloc)
-    (source-location-position srcloc)
-    (source-location-span srcloc)))
+   (~a who ": got " (~s tok) " expected "
+       (format-expected expected))
+   (source-location-source srcloc)
+   (source-location-line srcloc)
+   (source-location-column srcloc)
+   (source-location-position srcloc)
+   (source-location-span srcloc)))
 
 (define (unwrap v)
   (match v
    [(consumed rpy) rpy]
    [(empty rpy)    rpy]))
 
-(define (parse p s #:error [err-handler default-err-handler])
+(define (parse p s
+               #:who [who 'parse]
+               #:error [parse-error default-parse-error-handler])
   (match (unwrap (p s))
    [(ok v s _)      (values v s)]
-   [(and e (err _)) (err-handler e)]))
+   [(and e (err _)) (parse-error who e)]))
