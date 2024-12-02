@@ -64,6 +64,10 @@ Message tok = Message Pos tok (List String)
 (define (merge-error amsg bmsg)
   (empty (err (merge-message amsg bmsg))))
 
+(define (push/p v)
+  (lambda (a-stream)
+    (empty (ok v (stream-cons v a-stream) (message #f "" null)))))
+
 (define (return/p v)
   (lambda (a-stream)
     (empty (ok v a-stream (message #f "" null)))))
@@ -145,6 +149,9 @@ Message tok = Message Pos tok (List String)
 
 (define (many/p p)
   (or/p (many1/p p) (return/p null)))
+
+(define-syntax-parser define/p
+  [(_ name:id p) #'(define name (label/p 'name p))])
 
 (define (format-expected expected-list)
   (match expected-list
